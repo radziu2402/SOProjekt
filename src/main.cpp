@@ -26,16 +26,30 @@ int main() {
 
     shaft_start_y = 3;
     shaft_start_x = 1 + ((COLS - 10) / 2);
+    init_pair(1, COLOR_RED, COLOR_BLACK);
+    init_pair(2, COLOR_GREEN, COLOR_BLACK);
+    init_pair(3, COLOR_YELLOW, COLOR_RED);
+
+
     drawZeroFloorCorridor();
     drawElevatorShaftAndCorridors();
     thread t1(exitTask);
     thread t2(animateRectangle);
-    thread employeeThread(startEmployeeSimulation);
+//    thread employeeThread(startEmployeeSimulation);
+    std::vector<std::thread> workers;
+    for (int i = 0; i < 10; ++i) {
+        workers.emplace_back(startEmployeeSimulation);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    for (auto& worker : workers) {
+        worker.join();
+    }
 
 
     t1.join();
     t2.join();
-    employeeThread.join();
+//    employeeThread.join();
 
     endwin();
     return 0;
