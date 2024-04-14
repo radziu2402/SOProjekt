@@ -8,6 +8,10 @@ using namespace std;
 std::mutex mx_drawing;
 int shaft_start_x, shaft_start_y;
 std::atomic<bool> program_running(true);
+std::vector<Passenger> passengers;
+std::atomic<bool> elevator_ready_to_enter;
+std::atomic<bool> elevator_ready_to_exit;
+
 
 WINDOW *initializeExitWindow() {
     init_pair(1, COLOR_BLUE, COLOR_BLACK);

@@ -33,23 +33,20 @@ int main() {
 
     drawZeroFloorCorridor();
     drawElevatorShaftAndCorridors();
+
     thread t1(exitTask);
     thread t2(animateRectangle);
-//    thread employeeThread(startEmployeeSimulation);
     std::vector<std::thread> workers;
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 50; ++i) {
         workers.emplace_back(startEmployeeSimulation);
-        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     for (auto& worker : workers) {
         worker.join();
     }
 
-
     t1.join();
     t2.join();
-//    employeeThread.join();
 
     endwin();
     return 0;

@@ -7,6 +7,8 @@
 #include <thread>
 #include <mutex>
 #include "../config/Utilities.h"
+#include <atomic>
+#include <vector>
 
 extern std::mutex mx_drawing;
 extern int shaft_start_x, shaft_start_y;
@@ -32,18 +34,20 @@ void animateRectangle() {
 
         {
             std::lock_guard <std::mutex> writing_lock(mx_drawing);
-            mvwhline(elevator, 0, 1, ACS_HLINE, rect_width - 1); // Góra, pomijamy lewą krawędź
-            mvwhline(elevator, rect_height - 1, 1, ACS_HLINE, rect_width - 1); // Dół, pomijamy lewą krawędź
+            mvwhline(elevator, 0, 1, ACS_HLINE, rect_width - 1);
+            mvwhline(elevator, rect_height - 1, 1, ACS_HLINE, rect_width - 1);
 
-            mvwvline(elevator, 0, rect_width - 1, ACS_VLINE, rect_height); // Prawa ściana
+            mvwvline(elevator, 0, rect_width - 1, ACS_VLINE, rect_height);
 
-            mvwaddch(elevator, 0, rect_width - 1, ACS_URCORNER); // Górny prawy róg
-            mvwaddch(elevator, rect_height - 1, rect_width - 1, ACS_LRCORNER); // Dolny prawy róg
+            mvwaddch(elevator, 0, rect_width - 1, ACS_URCORNER);
+            mvwaddch(elevator, rect_height - 1, rect_width - 1, ACS_LRCORNER);
 
             wrefresh(elevator);
         }
-
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        elevator_ready_to_enter = true;
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        elevator_ready_to_enter = false;
+        elevator_ready_to_exit = false;
 
         for (int start_y = shaft_start_y; start_y <= target_floor; ++start_y) {
             if (!program_running) {
@@ -51,33 +55,42 @@ void animateRectangle() {
             }
             {
                 std::lock_guard <std::mutex> writing_lock(mx_drawing);
-
                 if (start_y == 9) {
                     WINDOW *elevator_no_left_wall = newwin(rect_height, rect_width, shaft_start_y, start_x);
 
-                    // Rysowanie górnej i dolnej linii ramki
-                    mvwhline(elevator_no_left_wall, 0, 1, ACS_HLINE, rect_width - 1); // Góra, pomijamy lewą krawędź
+                    mvwhline(elevator_no_left_wall, 0, 1, ACS_HLINE, rect_width - 1);
                     mvwhline(elevator_no_left_wall, rect_height - 1, 1, ACS_HLINE,
-                             rect_width - 1); // Dół, pomijamy lewą krawędź
+                             rect_width - 1);
 
-                    // Rysowanie prawej linii ramki
-                    mvwvline(elevator_no_left_wall, 0, rect_width - 1, ACS_VLINE, rect_height); // Prawa ściana
+                    mvwvline(elevator_no_left_wall, 0, rect_width - 1, ACS_VLINE, rect_height);
 
-                    // Rysowanie rogów
-                    mvwaddch(elevator_no_left_wall, 0, rect_width - 1, ACS_URCORNER); // Górny prawy róg
-                    mvwaddch(elevator_no_left_wall, rect_height - 1, rect_width - 1, ACS_LRCORNER); // Dolny prawy róg
-
+                    mvwaddch(elevator_no_left_wall, 0, rect_width - 1, ACS_URCORNER);
+                    mvwaddch(elevator_no_left_wall, rect_height - 1, rect_width - 1, ACS_LRCORNER);
                     wrefresh(elevator_no_left_wall);
-
-                    // Pamiętaj, aby zwolnić zasoby po zakończeniu używania tego okna
-                    delwin(elevator_no_left_wall);
                 }
-
                 werase(elevator);
+                int passenger_y = 1;
+                int passenger_x = 1;
                 mvwin(elevator, prev_y, start_x);
                 wrefresh(elevator);
 
                 mvwin(elevator, start_y, start_x);
+
+                for (const auto& passenger : passengers){
+                    wattron(elevator, COLOR_PAIR(passenger.color_pair));
+                    mvwprintw(elevator, passenger_y, passenger_x, "%c", passenger.symbol);
+                    wattroff(elevator, COLOR_PAIR(passenger.color_pair));
+
+
+                    if (passenger_x == 6) {
+                        if(passenger_y == 3){
+                            break;
+                        }
+                        passenger_x = 1;
+                        passenger_y += 1;
+                    }else
+                    passenger_x += 1;
+                }
 
                 box(elevator, 0, 0);
                 wrefresh(elevator);
@@ -101,6 +114,8 @@ void animateRectangle() {
             mvwaddch(elevator, rect_height - 1, 0, ACS_LLCORNER);
 
             wrefresh(elevator);
+            passengers.clear();
+            elevator_ready_to_exit = true;
         }
         delwin(elevator);
     }
