@@ -26,10 +26,9 @@ void animateRectangle() {
 
     std::vector<int> floor_positions = {9, 20, 31};
 
-
     while (program_running.load()) {
         int target_floor = floor_positions[std::rand() % floor_positions.size()] + 3;
-
+        exit_floor = target_floor;
         WINDOW *elevator = newwin(rect_height, rect_width, shaft_start_y, start_x);
 
         {
@@ -99,6 +98,7 @@ void animateRectangle() {
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(400));
         }
+        exit_floor = target_floor;
         {
             std::lock_guard <std::mutex> writing_lock(mx_drawing);
 

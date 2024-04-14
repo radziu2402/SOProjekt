@@ -11,6 +11,7 @@ std::atomic<bool> program_running(true);
 std::vector<Passenger> passengers;
 std::atomic<bool> elevator_ready_to_enter;
 std::atomic<bool> elevator_ready_to_exit;
+std::atomic<int> exit_floor;
 
 
 WINDOW *initializeExitWindow() {
