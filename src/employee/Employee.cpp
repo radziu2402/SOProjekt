@@ -38,7 +38,8 @@ void startEmployeeSimulation() {
 
     int employee_width = 2;
     int employee_height = 1;
-    int employee_start_x = 46;
+    int employee_start_x =  COLS / 2 - 50;
+    int waiting_for_elevator_x = COLS / 2 - 6;
     int employee_start_y = 4 + std::rand() % 3;
 
     char symbol = 'A' + std::rand() % 26;
@@ -53,7 +54,7 @@ void startEmployeeSimulation() {
     while (true) {
         bool shouldMove = false;
 
-        if (employee_start_x < 88 && isPositionFree(employee_start_x + 1, employee_start_y)) {
+        if (employee_start_x < waiting_for_elevator_x && isPositionFree(employee_start_x + 1, employee_start_y)) {
             occupyPosition(employee_start_x + 1, employee_start_y);
             freePosition(employee_start_x, employee_start_y);
             ++employee_start_x;

@@ -65,7 +65,7 @@ void drawZeroFloorCorridor() {
 
     getmaxyx(stdscr, max_y, max_x);
 
-    int start_x = 45;
+    int start_x = COLS / 2 - 50;
     int start_y = 3;
 
     std::lock_guard <std::mutex> writing_lock(mx_drawing);
