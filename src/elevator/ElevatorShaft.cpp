@@ -20,7 +20,7 @@ void drawElevatorShaftAndCorridors() {
     const int start_y_offset = 6;
 
     const int level_zero_height = 3;
-    const int level_zero_y = LINES - level_zero_height - 1;
+    const int level_zero_y = 49 - level_zero_height - 1;
     WINDOW *elevator_shaft = newwin(shaft_height, shaft_width, shaft_start_y, shaft_start_x);
     box(elevator_shaft, 0, 0);
     mvwaddch(elevator_shaft, 0, 0, ACS_HLINE);
