@@ -3,6 +3,6 @@
 
 #include <atomic>
 
-void animateRectangle();
+void animateElevator();
 
 #endif // ELEVATOR_H

@@ -13,7 +13,7 @@
 extern std::mutex mx_drawing;
 extern int shaft_start_x, shaft_start_y;
 
-void animateRectangle() {
+void animateElevator() {
     std::srand(static_cast<unsigned>(std::time(nullptr)));
     int rect_height = 5, rect_width = 8;
     int start_x = shaft_start_x;

@@ -42,7 +42,7 @@ int main() {
     drawElevatorShaftAndCorridors();
 
     thread t1(exitTask);
-    thread t2(animateRectangle);
+    thread t2(animateElevator);
     std::vector<std::thread> workers;
     for (int i = 0; i < 241; ++i) {
         workers.emplace_back(startEmployeeSimulation);
