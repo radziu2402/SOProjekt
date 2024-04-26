@@ -10,7 +10,8 @@
 #include "config/Utilities.h"
 #include "elevator/Elevator.h"
 #include "elevator/ElevatorShaft.h"
-#include "employee/Employee.h"
+#include "employee/EmployeeCreator.h"
+
 
 using namespace std;
 
@@ -43,14 +44,9 @@ int main() {
 
     thread t1(exitTask);
     thread t2(animateElevator);
-    std::vector<std::thread> workers;
-    for (int i = 0; i < 241; ++i) {
-        workers.emplace_back(startEmployeeSimulation);
-    }
 
-    for (auto& worker : workers) {
-        worker.join();
-    }
+    std::thread creator(workerCreator);
+    creator.join();
 
     t1.join();
     t2.join();
