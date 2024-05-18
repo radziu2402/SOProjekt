@@ -76,65 +76,66 @@ void startEmployeeSimulation() {
         std::this_thread::sleep_for(std::chrono::milliseconds(speed));
     }
     Passenger newPassenger{symbol, color_pair_number};
-    while (program_running.load()) {
-        if (elevator_ready_to_enter) {
-            if (passengers.size() < 18) {
-                {
-                    std::lock_guard<std::mutex> guard(mx_drawing);
-                    Passenger newPassenger{symbol, color_pair_number};
-                    passengers.push_back(newPassenger);
-                    freePosition(employee_start_x, employee_start_y);
-                    werase(employee_window);
-                    wrefresh(employee_window);
-                    delwin(employee_window);
-                    our_exit_floor = exit_floor;
-                }
-                std::this_thread::sleep_for(std::chrono::seconds(5));
-                break;
-            }
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(speed));
+
+    {
+        std::unique_lock<std::mutex> lock(mx_elevator);
+        cv_elevator_enter.wait(lock, [] { return elevator_ready_to_enter.load(); });
     }
+
+    {
+        std::lock_guard<std::mutex> guard(mx_drawing);
+        if (passengers.size() < 18) {
+            passengers.push_back(newPassenger);
+            freePosition(employee_start_x, employee_start_y);
+            werase(employee_window);
+            wrefresh(employee_window);
+            delwin(employee_window);
+            our_exit_floor = exit_floor;
+        }
+    }
+
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
     our_exit_floor = our_exit_floor + std::rand() % 3;
+
+    {
+        std::unique_lock<std::mutex> lock(mx_elevator);
+        cv_elevator_exit.wait(lock, [] { return elevator_ready_to_exit.load(); });
+    }
+
+    WINDOW *employee_window_after_exit = newwin(employee_height, employee_width, our_exit_floor + 1, employee_start_x_after_exit);
+    wattron(employee_window_after_exit, COLOR_PAIR(color_pair_number));
+    occupyPosition(exit_floor + 1, employee_start_x_after_exit);
+
     while (program_running.load()) {
-        if (elevator_ready_to_exit) {
-            WINDOW *employee_window_after_exit = newwin(employee_height, employee_width, our_exit_floor + 1, employee_start_x_after_exit);
-            wattron(employee_window_after_exit, COLOR_PAIR(color_pair_number));
-            occupyPosition(exit_floor + 1, employee_start_x_after_exit);
+        bool shouldMove = false;
+        if (exit_floor < waiting_for_elevator_x &&
+            isPositionFree(employee_start_x_after_exit + 1, our_exit_floor + 1)) {
+            occupyPosition(employee_start_x_after_exit + 1, our_exit_floor + 1);
+            freePosition(employee_start_x_after_exit, our_exit_floor + 1);
+            ++employee_start_x_after_exit;
+            shouldMove = true;
+        }
 
-
-            while (program_running.load()) {
-                bool shouldMove = false;
-                if (exit_floor < waiting_for_elevator_x &&
-                    isPositionFree(employee_start_x_after_exit + 1, our_exit_floor + 1)) {
-                    occupyPosition(employee_start_x_after_exit + 1, our_exit_floor + 1);
-                    freePosition(employee_start_x_after_exit, our_exit_floor + 1);
-                    ++employee_start_x_after_exit;
-                    shouldMove = true;
-                }
-
-                if (shouldMove) {
-                    std::lock_guard <std::mutex> guard(mx_drawing);
-                    werase(employee_window_after_exit);
-                    mvwin(employee_window_after_exit, our_exit_floor + 1, employee_start_x_after_exit + 1);
-                    mvwprintw(employee_window_after_exit, 0, 1, "%c", symbol);
-                    wrefresh(employee_window_after_exit);
-                }
-                if (employee_start_x_after_exit == waiting_for_disappear) {
-                    break;
-                }
-                std::this_thread::sleep_for(std::chrono::milliseconds(speed));
-            }
-            std::this_thread::sleep_for(std::chrono::seconds(3));
-            {
-                std::lock_guard<std::mutex> guard(mx_drawing);
-                freePosition(employee_start_x_after_exit, our_exit_floor + 1);
-                werase(employee_window_after_exit);
-                wrefresh(employee_window_after_exit);
-                delwin(employee_window_after_exit);
-            }
+        if (shouldMove) {
+            std::lock_guard <std::mutex> guard(mx_drawing);
+            werase(employee_window_after_exit);
+            mvwin(employee_window_after_exit, our_exit_floor + 1, employee_start_x_after_exit + 1);
+            mvwprintw(employee_window_after_exit, 0, 1, "%c", symbol);
+            wrefresh(employee_window_after_exit);
+        }
+        if (employee_start_x_after_exit == waiting_for_disappear) {
             break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(speed));
+    }
+
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+    {
+        std::lock_guard<std::mutex> guard(mx_drawing);
+        freePosition(employee_start_x_after_exit, our_exit_floor + 1);
+        werase(employee_window_after_exit);
+        wrefresh(employee_window_after_exit);
+        delwin(employee_window_after_exit);
     }
 }

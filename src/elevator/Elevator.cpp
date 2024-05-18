@@ -43,10 +43,21 @@ void animateElevator() {
 
             wrefresh(elevator);
         }
-        elevator_ready_to_enter = true;
+
+        // Sygnalizujemy gotowość windy do wejścia
+        {
+            std::lock_guard<std::mutex> lock(mx_elevator);
+            elevator_ready_to_enter = true;
+        }
+        cv_elevator_enter.notify_all();
+
         std::this_thread::sleep_for(std::chrono::seconds(5));
-        elevator_ready_to_enter = false;
-        elevator_ready_to_exit = false;
+
+        // Zamykamy możliwość wejścia do windy
+        {
+            std::lock_guard<std::mutex> lock(mx_elevator);
+            elevator_ready_to_enter = false;
+        }
 
         for (int start_y = shaft_start_y; start_y <= target_floor; ++start_y) {
             if (!program_running) {
@@ -80,15 +91,15 @@ void animateElevator() {
                     mvwprintw(elevator, passenger_y, passenger_x, "%c", passenger.symbol);
                     wattroff(elevator, COLOR_PAIR(passenger.color_pair));
 
-
                     if (passenger_x == 6) {
                         if(passenger_y == 3){
                             break;
                         }
                         passenger_x = 1;
                         passenger_y += 1;
-                    }else
-                    passenger_x += 1;
+                    } else {
+                        passenger_x += 1;
+                    }
                 }
 
                 box(elevator, 0, 0);
@@ -115,9 +126,21 @@ void animateElevator() {
 
             wrefresh(elevator);
             passengers.clear();
-            elevator_ready_to_exit = true;
+
+            {
+                std::lock_guard<std::mutex> lock(mx_elevator);
+                elevator_ready_to_exit = true;
+            }
+            cv_elevator_exit.notify_all();
         }
+
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+
+        {
+            std::lock_guard<std::mutex> lock(mx_elevator);
+            elevator_ready_to_exit = false;
+        }
+
         delwin(elevator);
     }
-
 }
