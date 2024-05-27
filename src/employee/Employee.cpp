@@ -25,7 +25,7 @@ void startEmployeeSimulation() {
 
     char symbol = 'A' + std::rand() % 26;
     int color_pair_number = 1 + std::rand() % 10;
-    int speed = 100 + (std::rand() % 5) * 50;
+    int speed = 110 + (std::rand() % 5) * 50;
 
     WINDOW *employee_window = newwin(employee_height, employee_width, employee_start_y, employee_start_x);
     wattron(employee_window, COLOR_PAIR(color_pair_number));
@@ -33,11 +33,13 @@ void startEmployeeSimulation() {
     while (program_running.load()) {
         if (employee_start_x < waiting_for_elevator_x){
             ++employee_start_x;
-            std::lock_guard <std::mutex> guard(mx_drawing);
-            werase(employee_window);
-            mvwin(employee_window, employee_start_y, employee_start_x);
-            mvwprintw(employee_window, 0, 1, "%c", symbol);
-            wrefresh(employee_window);
+            {
+                std::lock_guard <std::mutex> guard(mx_drawing);
+                werase(employee_window);
+                mvwin(employee_window, employee_start_y, employee_start_x);
+                mvwprintw(employee_window, 0, 1, "%c", symbol);
+                wrefresh(employee_window);
+            }
         }
         if (employee_start_x == waiting_for_elevator_x) {
             break;
@@ -53,13 +55,11 @@ void startEmployeeSimulation() {
 
     {
         std::lock_guard<std::mutex> guard(mx_drawing);
-        if (passengers.size() < 18) {
-            passengers.push_back(newPassenger);
-            werase(employee_window);
-            wrefresh(employee_window);
-            delwin(employee_window);
-            our_exit_floor = exit_floor;
-        }
+        passengers.push_back(newPassenger);
+        werase(employee_window);
+        wrefresh(employee_window);
+        delwin(employee_window);
+        our_exit_floor = exit_floor;
     }
 
     std::this_thread::sleep_for(std::chrono::seconds(5));
@@ -77,11 +77,13 @@ void startEmployeeSimulation() {
     while (program_running.load()) {
         if (exit_floor < waiting_for_elevator_x) {
             ++employee_start_x_after_exit;
-            std::lock_guard <std::mutex> guard(mx_drawing);
-            werase(employee_window_after_exit);
-            mvwin(employee_window_after_exit, our_exit_floor + 1, employee_start_x_after_exit + 1);
-            mvwprintw(employee_window_after_exit, 0, 1, "%c", symbol);
-            wrefresh(employee_window_after_exit);
+            {
+                std::lock_guard <std::mutex> guard(mx_drawing);
+                werase(employee_window_after_exit);
+                mvwin(employee_window_after_exit, our_exit_floor + 1, employee_start_x_after_exit + 1);
+                mvwprintw(employee_window_after_exit, 0, 1, "%c", symbol);
+                wrefresh(employee_window_after_exit);
+            }
         }
         if (employee_start_x_after_exit == waiting_for_disappear) {
             break;

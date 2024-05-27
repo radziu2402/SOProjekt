@@ -44,7 +44,6 @@ void animateElevator() {
             wrefresh(elevator);
         }
 
-        // Sygnalizujemy gotowość windy do wejścia
         {
             std::lock_guard<std::mutex> lock(mx_elevator);
             elevator_ready_to_enter = true;
@@ -53,7 +52,6 @@ void animateElevator() {
 
         std::this_thread::sleep_for(std::chrono::seconds(5));
 
-        // Zamykamy możliwość wejścia do windy
         {
             std::lock_guard<std::mutex> lock(mx_elevator);
             elevator_ready_to_enter = false;
