@@ -1,3 +1,0 @@
-/mnt/c/Users/radzi/CLionProjects/ProjektSO2/cmake-build-debug/CMakeFiles/ProjektSO2.dir
-/mnt/c/Users/radzi/CLionProjects/ProjektSO2/cmake-build-debug/CMakeFiles/edit_cache.dir
-/mnt/c/Users/radzi/CLionProjects/ProjektSO2/cmake-build-debug/CMakeFiles/rebuild_cache.dir
