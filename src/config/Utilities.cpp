@@ -16,6 +16,7 @@ std::atomic<int> exit_floor;
 std::mutex mx_elevator;
 std::condition_variable cv_elevator_enter;
 std::condition_variable cv_elevator_exit;
+std::atomic<int> next_employee_id = 0;
 
 WINDOW *initializeExitWindow() {
     init_pair(1, COLOR_BLUE, COLOR_BLACK);

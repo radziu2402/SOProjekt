@@ -22,6 +22,7 @@ extern std::atomic<bool> elevator_ready_to_exit;
 extern std::mutex mx_elevator;
 extern std::condition_variable cv_elevator_enter;
 extern std::condition_variable cv_elevator_exit;
+extern std::atomic<int> next_employee_id;
 
 WINDOW *initializeExitWindow();
 

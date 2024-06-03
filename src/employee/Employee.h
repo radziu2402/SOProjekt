@@ -3,7 +3,6 @@
 
 #include <ncurses.h>
 
-// Funkcja startowa dla symulacji pracownika
-void startEmployeeSimulation();
+void startEmployeeSimulation(int employee_id);
 
 #endif // EMPLOYEE_H
