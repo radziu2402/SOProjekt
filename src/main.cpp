@@ -44,12 +44,11 @@ int main() {
 
     thread t1(exitTask);
     thread t2(animateElevator);
-
-    std::thread creator(workerCreator);
-    creator.join();
+    thread creator(workerCreator);
 
     t1.join();
     t2.join();
+    creator.join();
 
     endwin();
     return 0;

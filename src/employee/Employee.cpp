@@ -119,8 +119,11 @@ void startEmployeeSimulation(int employee_id) {
             std::unique_lock<std::mutex> lk(exit_locations[exit_location_key].mx_last_place);
             if (exit_locations[exit_location_key].place_occupied) {
                 exit_locations[exit_location_key].cv_last_place_free.wait(lk, [&] {
-                    return exit_locations[exit_location_key].waiting_employees.top() == employee_id && !exit_locations[exit_location_key].place_occupied;
+                    return (exit_locations[exit_location_key].waiting_employees.top() == employee_id && !exit_locations[exit_location_key].place_occupied) || !program_running.load();
                 });
+                if (!program_running.load()) {
+                    return;
+                }
                 exit_locations[exit_location_key].place_occupied = true;
                 exit_locations[exit_location_key].waiting_employees.pop();
             }
@@ -129,6 +132,9 @@ void startEmployeeSimulation(int employee_id) {
 
     std::this_thread::sleep_for(std::chrono::milliseconds(speed));
     ++employee_start_x_after_exit;
+    if (!program_running.load()) {
+        return;
+    }
     {
         std::lock_guard<std::mutex> guard(mx_drawing);
         werase(employee_window_after_exit);
@@ -148,6 +154,9 @@ void startEmployeeSimulation(int employee_id) {
         std::lock_guard<std::mutex> lk(exit_locations[exit_location_key].mx_last_place);
         exit_locations[exit_location_key].place_occupied = false;
         if (!exit_locations[exit_location_key].waiting_employees.empty()) {
+            if (!program_running.load()) {
+                return;
+            }
             exit_locations[exit_location_key].cv_last_place_free.notify_all();
         }
     }

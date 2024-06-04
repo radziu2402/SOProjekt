@@ -59,7 +59,7 @@ void animateElevator() {
 
         for (int start_y = shaft_start_y; start_y <= target_floor; ++start_y) {
             if (!program_running) {
-                break;
+                return;
             }
             {
                 std::lock_guard <std::mutex> writing_lock(mx_drawing);
@@ -88,7 +88,9 @@ void animateElevator() {
                     wattron(elevator, COLOR_PAIR(passenger.color_pair));
                     mvwprintw(elevator, passenger_y, passenger_x, "%c", passenger.symbol);
                     wattroff(elevator, COLOR_PAIR(passenger.color_pair));
-
+                    if (!program_running) {
+                        return;
+                    }
                     if (passenger_x == 6) {
                         if(passenger_y == 3){
                             break;
@@ -106,6 +108,9 @@ void animateElevator() {
                 prev_y = start_y;
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(400));
+        }
+        if (!program_running) {
+            return;
         }
         exit_floor = target_floor;
         {
